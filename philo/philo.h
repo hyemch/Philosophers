@@ -20,4 +20,15 @@
 # include <sys/time.h>
 # include <pthread.h>
 
+# define ERROR -1
+
+typedef struct s_info
+{
+	int	philo_num;
+	int	time_die;
+	int	time_eat;
+	int	time_sleep;
+	int	must_eat;
+}	t_info;
+
 #endif

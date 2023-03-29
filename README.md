@@ -3,7 +3,8 @@ philosophers with threads and mutexes
 
 ```
 make
-./philo
+./philo [philosophers num] [die] [eat] [sleep]
+./philo [philosopher num] [die] [eat] [sleep] [must eat]
 ```
 
 - 한 명 이상의 철학자가 원탁에 앉아있다. 
