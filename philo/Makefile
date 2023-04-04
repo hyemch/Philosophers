@@ -16,7 +16,6 @@ RM		=	rm -f
 all		:	$(NAME)
 
 $(NAME)	:	$(OBJ)
-	make -C $(LIB)
 	$(CC) $(CFLAGS) $(INC_DIR) $(OBJ) -o $(NAME)
 
 %.o : %.c
