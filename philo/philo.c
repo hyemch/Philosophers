@@ -69,7 +69,7 @@ void	atol_intarr(char **arr)
 	}
 }
 
-int	parse_arg(char **argv, t_info *info)
+int	init_arg(char **argv, t_info *info)
 {
 	atol_intarr(argv);
 	info->philo_num = ft_atol(argv[1]);
@@ -97,6 +97,6 @@ int	main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 	memset(&info, 0, sizeof(t_info));
-	parse_arg(argv, &info);
+	init_arg(argv, &info);
 	return (0);
 }
