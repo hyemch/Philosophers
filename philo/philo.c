@@ -12,7 +12,7 @@
 
 #include "philo.h"
 
-size_t	ft_strlen(char *str)
+size_t	ft_strlen(const char *str)
 {
 	size_t	i;
 
@@ -27,7 +27,23 @@ void	print_error(char *str)
 	write(2, str, ft_strlen(str));
 	exit (1);
 }
-//부호 아예 빼버리기.
+
+int	atol_utils(const char *str, long *result)
+{
+	while (*str)
+	{
+		if (*str >= '0' && *str <= '9')
+		{
+			*result = *result * 10 + (*str - '0');
+			if (*result < 0)
+				return (ERROR);
+		}
+		else
+			return (ERROR);
+		str++;
+	}
+	return (0);
+}
 
 long	ft_atol(const char *str)
 {
@@ -44,13 +60,8 @@ long	ft_atol(const char *str)
 			sign *= -1;
 		str++;
 	}
-	while (*str && *str >= '0' && *str <= '9')
-	{
-		result = result * 10 + (*str - '0');
-		if (result < 0)
-			return (ERROR);
-		str++;
-	}
+	if (atol_utils(str, &result) == ERROR)
+		return (ERROR);
 	return (result * sign);
 }
 
@@ -72,12 +83,12 @@ void	atol_intarr(char **arr)
 int	init_arg(char **argv, t_info *info)
 {
 	atol_intarr(argv);
-	info->philo_num = ft_atol(argv[1]);
-	info->time_die = ft_atol(argv[2]);
-	info->time_eat = ft_atol(argv[3]);
-	info->time_sleep = ft_atol(argv[4]);
+	info->philo_num = (int)ft_atol(argv[1]);
+	info->time_die = (int)ft_atol(argv[2]);
+	info->time_eat = (int)ft_atol(argv[3]);
+	info->time_sleep = (int)ft_atol(argv[4]);
 	if (argv[5] != NULL)
-		info->must_eat = ft_atol(argv[5]);
+		info->must_eat = (int)ft_atol(argv[5]);
 	if (info->philo_num <= 0 || info->time_die <= 0 || info->time_eat <= 0 \
 	|| info->time_sleep <= 0)
 		print_error("Error: argument error.\n");
