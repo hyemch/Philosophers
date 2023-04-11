@@ -100,6 +100,7 @@ int	init_arg(char **argv, t_info *info)
 int	main(int argc, char **argv)
 {
 	t_info	info;
+	t_philo	philo;
 
 	if (argc != 6 && argc != 5)
 	{

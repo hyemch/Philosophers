@@ -31,4 +31,8 @@ typedef struct s_info
 	int	must_eat;
 }	t_info;
 
+typedef struct s_philo
+{
+}	t_philo;
+
 #endif
