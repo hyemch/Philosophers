@@ -6,7 +6,7 @@
 /*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 20:51:59 by hyecheon          #+#    #+#             */
-/*   Updated: 2023/03/28 20:52:38 by hyecheon         ###   ########.fr       */
+/*   Updated: 2023/04/12 21:22:55 by hyecheon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,9 @@ typedef struct s_info
 
 typedef struct s_philo
 {
+	pthread_t	thread;
+	int			id;
+	int			eat_count;
 }	t_philo;
 
 #endif

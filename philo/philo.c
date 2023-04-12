@@ -80,6 +80,22 @@ void	atol_intarr(char **arr)
 	}
 }
 
+int	philo_init(t_info *info, t_philo **philo)
+{
+	int	i;
+
+	*philo = (t_philo)malloc(sizeof(t_philo) * info->philo_num);
+	if (!*philo)
+		print_error("philo malloc error\n");
+	i = 0;
+	while (i < info->philo_num)
+	{
+		philo[i].
+		i++;
+	}
+	return (0);
+}
+
 int	init_arg(char **argv, t_info *info)
 {
 	atol_intarr(argv);
@@ -99,8 +115,8 @@ int	init_arg(char **argv, t_info *info)
 
 int	main(int argc, char **argv)
 {
-	t_info	info;
-	t_philo	philo;
+	t_info		info;
+	t_philo		*philo;
 
 	if (argc != 6 && argc != 5)
 	{
@@ -110,5 +126,10 @@ int	main(int argc, char **argv)
 	}
 	memset(&info, 0, sizeof(t_info));
 	init_arg(argv, &info);
+	memset(&philo, 0, sizeof(t_philo));
+	init_philo(&info, &philo);
+	//철학자 구조체설정
+	//pthread 생성, 시작
+	//
 	return (0);
 }
