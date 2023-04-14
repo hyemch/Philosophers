@@ -11,12 +11,14 @@ SRC		=	philo.c
 
 OBJ		=	$(SRC:.c=.o)
 
+PHILO	=	-lpthread
+
 RM		=	rm -f
 
 all		:	$(NAME)
 
 $(NAME)	:	$(OBJ)
-	$(CC) $(CFLAGS) $(INC_DIR) $(OBJ) -o $(NAME)
+	$(CC) $(CFLAGS) $(INC_DIR) $(OBJ) -o $(NAME) $(PHILO)
 
 %.o : %.c
 	$(CC) $(CFLAGS) $(INC_DIR) -c $< -o $@

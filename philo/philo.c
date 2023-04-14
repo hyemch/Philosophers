@@ -6,7 +6,7 @@
 /*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 20:47:42 by hyecheon          #+#    #+#             */
-/*   Updated: 2023/03/28 20:48:17 by hyecheon         ###   ########.fr       */
+/*   Updated: 2023/04/14 22:11:07 by hyecheon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,17 +80,51 @@ void	atol_intarr(char **arr)
 	}
 }
 
-int	philo_init(t_info *info, t_philo **philo)
+int	init_philo_mutex(t_info *info)
 {
 	int	i;
 
-	*philo = (t_philo)malloc(sizeof(t_philo) * info->philo_num);
+	info->forks = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t) \
+	* info->philo_num);
+	if (!(info->forks))
+		return (0);
+	i = 0;
+	while (i < info->philo_num)
+	{
+		if (pthread_mutex_init(&(info->forks)[i], NULL) < 0)
+		{
+			free(info->forks);
+			return (0);
+		}
+		i++;
+	}
+	return (1);
+}
+
+int	get_time(void)
+{
+	struct timeval	current;
+
+	gettimeofday(&current, NULL);
+	return (current.tv_sec * 1000 * 1000);
+}
+
+int	init_philo(t_info *info, t_philo **philo)
+{
+	int	i;
+
+	*philo = (t_philo *)malloc(sizeof(t_philo) * info->philo_num);
 	if (!*philo)
 		print_error("philo malloc error\n");
 	i = 0;
 	while (i < info->philo_num)
 	{
-		philo[i].
+		philo[i]->info = info;
+		philo[i]->id = i;
+		philo[i]->eat_count = 0;
+		philo[i]->last_time = get_time();
+		philo[i]->fork_left = &(info->forks)[i];
+		philo[i]->fork_right = &(info->forks)[(i + 1) % info->philo_num];
 		i++;
 	}
 	return (0);
@@ -110,6 +144,8 @@ int	init_arg(char **argv, t_info *info)
 		print_error("Error: argument error.\n");
 	if (argv[5] != NULL && info->must_eat <= 0)
 		print_error("Error: argument error.\n");
+	if (!(init_philo_mutex(info)))
+		print_error("Error : mutex init error\n");
 	return (0);
 }
 
@@ -126,10 +162,7 @@ int	main(int argc, char **argv)
 	}
 	memset(&info, 0, sizeof(t_info));
 	init_arg(argv, &info);
-	memset(&philo, 0, sizeof(t_philo));
 	init_philo(&info, &philo);
-	//철학자 구조체설정
-	//pthread 생성, 시작
-	//
+	printf("%d %d\n", philo->eat_count, philo->last_time);
 	return (0);
 }
