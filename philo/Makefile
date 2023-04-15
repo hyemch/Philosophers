@@ -17,11 +17,11 @@ RM		=	rm -f
 
 all		:	$(NAME)
 
-$(NAME)	:	$(OBJ)
-	$(CC) $(CFLAGS) $(INC_DIR) $(OBJ) -o $(NAME) $(PHILO)
-
 %.o : %.c
 	$(CC) $(CFLAGS) $(INC_DIR) -c $< -o $@
+
+$(NAME)	:	$(OBJ)
+	$(CC) $(CFLAGS) $(INC_DIR) $(OBJ) -o $(NAME) $(PHILO)
 
 clean	:
 	$(RM) $(OBJ)

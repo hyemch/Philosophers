@@ -6,7 +6,7 @@
 /*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 20:47:42 by hyecheon          #+#    #+#             */
-/*   Updated: 2023/04/14 22:11:07 by hyecheon         ###   ########.fr       */
+/*   Updated: 2023/04/15 21:21:20 by hyecheon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,20 +80,20 @@ void	atol_intarr(char **arr)
 	}
 }
 
-int	init_philo_mutex(t_info *info)
+int	init_philo_mutex(t_info *info, t_philo *philo)
 {
 	int	i;
 
-	info->forks = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t) \
+	philo->forks = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t) \
 	* info->philo_num);
-	if (!(info->forks))
+	if (!(philo->forks))
 		return (0);
 	i = 0;
 	while (i < info->philo_num)
 	{
-		if (pthread_mutex_init(&(info->forks)[i], NULL) < 0)
+		if (pthread_mutex_init(&(philo->forks)[i], NULL) < 0)
 		{
-			free(info->forks);
+			free(philo->forks);
 			return (0);
 		}
 		i++;
@@ -101,30 +101,39 @@ int	init_philo_mutex(t_info *info)
 	return (1);
 }
 
-int	get_time(void)
+long long	get_time(void)
 {
 	struct timeval	current;
+	long long		ms;
 
-	gettimeofday(&current, NULL);
-	return (current.tv_sec * 1000 * 1000);
+	if ((gettimeofday(&current, NULL)) == -1)
+	{
+		write(2, "Error: gettimeofday error.\n", 27);
+		return (ERROR);
+	}
+	ms = (current.tv_sec * 1000) + (current.tv_usec / 1000);
+	return (ms);
 }
 
 int	init_philo(t_info *info, t_philo **philo)
 {
-	int	i;
+	int				i;
 
 	*philo = (t_philo *)malloc(sizeof(t_philo) * info->philo_num);
 	if (!*philo)
 		print_error("philo malloc error\n");
+	memset(*philo, 0, sizeof(t_philo));
+	if (!(init_philo_mutex(info, *philo)))
+		print_error("Error : mutex init error\n");
 	i = 0;
 	while (i < info->philo_num)
 	{
-		philo[i]->info = info;
-		philo[i]->id = i;
-		philo[i]->eat_count = 0;
-		philo[i]->last_time = get_time();
-		philo[i]->fork_left = &(info->forks)[i];
-		philo[i]->fork_right = &(info->forks)[(i + 1) % info->philo_num];
+		(*philo)[i].info = info;
+		(*philo)[i].id = i;
+		(*philo)[i].fork_left = i;
+		(*philo)[i].fork_right = (i + 1) % info->philo_num;
+		(*philo)[i].eat_count = 0;
+		(*philo)[i].last_time = get_time();
 		i++;
 	}
 	return (0);
@@ -144,8 +153,6 @@ int	init_arg(char **argv, t_info *info)
 		print_error("Error: argument error.\n");
 	if (argv[5] != NULL && info->must_eat <= 0)
 		print_error("Error: argument error.\n");
-	if (!(init_philo_mutex(info)))
-		print_error("Error : mutex init error\n");
 	return (0);
 }
 
@@ -163,6 +170,11 @@ int	main(int argc, char **argv)
 	memset(&info, 0, sizeof(t_info));
 	init_arg(argv, &info);
 	init_philo(&info, &philo);
-	printf("%d %d\n", philo->eat_count, philo->last_time);
+	int i = 0;
+	while (i < info.philo_num)
+	{
+		printf("%d %lld\n", philo[i].eat_count, philo[i].last_time);
+		i++;
+	}
 	return (0);
 }
