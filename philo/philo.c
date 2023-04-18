@@ -6,7 +6,7 @@
 /*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 20:47:42 by hyecheon          #+#    #+#             */
-/*   Updated: 2023/04/15 21:21:20 by hyecheon         ###   ########.fr       */
+/*   Updated: 2023/04/18 21:30:55 by hyecheon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,26 +80,47 @@ void	atol_intarr(char **arr)
 	}
 }
 
-int	init_philo_mutex(t_info *info, t_philo *philo)
+int	init_philo_mutex(t_info *info, t_pthread *pthread)
 {
 	int	i;
 
-	philo->forks = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t) \
+	//pthread 구조체 철학자 수 만큼 배열  할당 -> forks 뮤텍스 초기화 해주기
+	pthread->forks = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t) \
 	* info->philo_num);
-	if (!(philo->forks))
+	if (!(pthread->forks))
 		return (0);
 	i = 0;
 	while (i < info->philo_num)
 	{
-		if (pthread_mutex_init(&(philo->forks)[i], NULL) < 0)
+		if (pthread_mutex_init(&(pthread->forks)[i], NULL) < 0)
 		{
-			free(philo->forks);
+			free(pthread->forks);
 			return (0);
 		}
 		i++;
 	}
 	return (1);
 }
+//int	init_philo_mutex(t_info *info, t_philo *philo)
+//{
+//	int	i;
+//
+//	philo->forks = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t) \
+//	* info->philo_num);
+//	if (!(philo->forks))
+//		return (0);
+//	i = 0;
+//	while (i < info->philo_num)
+//	{
+//		if (pthread_mutex_init(&(philo->forks)[i], NULL) < 0)
+//		{
+//			free(philo->forks);
+//			return (0);
+//		}
+//		i++;
+//	}
+//	return (1);
+//}
 
 long long	get_time(void)
 {
@@ -115,25 +136,22 @@ long long	get_time(void)
 	return (ms);
 }
 
-int	init_philo(t_info *info, t_philo **philo)
+int	init_philo(t_info *info, t_philo **philo, t_pthread	*pthread)
 {
 	int				i;
 
 	*philo = (t_philo *)malloc(sizeof(t_philo) * info->philo_num);
 	if (!*philo)
 		print_error("philo malloc error\n");
-	memset(*philo, 0, sizeof(t_philo));
-	if (!(init_philo_mutex(info, *philo)))
+	if (!(init_philo_mutex(info, pthread)))
 		print_error("Error : mutex init error\n");
 	i = 0;
 	while (i < info->philo_num)
 	{
-		(*philo)[i].info = info;
 		(*philo)[i].id = i;
 		(*philo)[i].fork_left = i;
 		(*philo)[i].fork_right = (i + 1) % info->philo_num;
 		(*philo)[i].eat_count = 0;
-		(*philo)[i].last_time = get_time();
 		i++;
 	}
 	return (0);
@@ -153,13 +171,16 @@ int	init_arg(char **argv, t_info *info)
 		print_error("Error: argument error.\n");
 	if (argv[5] != NULL && info->must_eat <= 0)
 		print_error("Error: argument error.\n");
+	info->start_time = get_time();
 	return (0);
 }
 
 int	main(int argc, char **argv)
 {
 	t_info		info;
+	t_pthread	pthread;
 	t_philo		*philo;
+	int			i;
 
 	if (argc != 6 && argc != 5)
 	{
@@ -169,8 +190,8 @@ int	main(int argc, char **argv)
 	}
 	memset(&info, 0, sizeof(t_info));
 	init_arg(argv, &info);
-	init_philo(&info, &philo);
-	int i = 0;
+	init_philo(&info, &philo, &pthread);
+	i = 0;
 	while (i < info.philo_num)
 	{
 		printf("%d %lld\n", philo[i].eat_count, philo[i].last_time);
