@@ -30,6 +30,7 @@ typedef struct s_info
 	int				time_sleep;
 	int				must_eat;
 	long long		start_time;
+	pthread_mutex_t	*forks;
 }	t_info;
 
 typedef struct s_philo
@@ -40,14 +41,26 @@ typedef struct s_philo
 	int				fork_left;
 	int				fork_right;
 	pthread_t		thread;
-	struct t_pthead	*pthread;
-	struct t_info	*info;
+	pthread_mutex_t	print_mutex;
+	t_info			*info;
 }	t_philo;
 
-typedef struct s_pthread
-{
-	pthread_mutex_t	forks;
-	pthread_mutex_t	print_mutex;
-}	t_pthread;
+//typedef struct s_philo
+//{
+//	int				id;
+//	int				eat_count;
+//	long long		eat_time;
+//	int				fork_left;
+//	int				fork_right;
+//	pthread_t		thread;
+//	t_mutex			*mutex;
+//	t_info			*info;
+//}	t_philo;
+//
+//typedef struct s_mutex
+//{
+//	pthread_mutex_t	*forks;
+//	pthread_mutex_t	print_mutex;
+//}	t_mutex;
 
 #endif
