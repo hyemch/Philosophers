@@ -29,19 +29,20 @@ typedef struct s_info
 	int				time_eat;
 	int				time_sleep;
 	int				must_eat;
+	int				die;
 	long long		start_time;
 	pthread_mutex_t	*forks;
+	pthread_mutex_t	print_mutex;
 }	t_info;
 
 typedef struct s_philo
 {
 	int				id;
 	int				eat_count;
-	long long		eat_time;
+	long long		last_time;
 	int				fork_left;
 	int				fork_right;
 	pthread_t		thread;
-	pthread_mutex_t	print_mutex;
 	t_info			*info;
 }	t_philo;
 
@@ -49,7 +50,7 @@ typedef struct s_philo
 //{
 //	int				id;
 //	int				eat_count;
-//	long long		eat_time;
+//	longlong		eat_time;
 //	int				fork_left;
 //	int				fork_right;
 //	pthread_t		thread;

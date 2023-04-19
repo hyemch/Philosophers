@@ -6,7 +6,7 @@
 /*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 20:47:42 by hyecheon          #+#    #+#             */
-/*   Updated: 2023/04/19 17:30:01 by hyecheon         ###   ########.fr       */
+/*   Updated: 2023/04/19 20:42:09 by hyecheon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,10 +94,12 @@ long long	get_time(void)
 	return (ms);
 }
 
-int	init_philo_mutex(t_info *info, t_philo *philo)
+int	init_philo_mutex(t_info *info)
 {
 	int	i;
 
+	if (pthread_mutex_init(&(info->print_mutex), NULL) != 0)
+		return (0);
 	info->forks = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t) \
 	* info->philo_num);
 	if (!(info->forks))
@@ -105,12 +107,11 @@ int	init_philo_mutex(t_info *info, t_philo *philo)
 	i = 0;
 	while (i < info->philo_num)
 	{
-		if (pthread_mutex_init(&(info->forks)[i], NULL) < 0)
+		if (pthread_mutex_init(&(info->forks)[i], NULL) != 0)
 		{
 			free(info->forks);
 			return (0);
 		}
-		pthread_mutex_init(&(philo[i].print_mutex), NULL);
 		i++;
 	}
 	return (1);
@@ -139,7 +140,7 @@ int	init_philo(t_info *info, t_philo **philo)
 	*philo = (t_philo *)malloc(sizeof(t_philo) * info->philo_num);
 	if (!*philo)
 		print_error("philo malloc error\n");
-	if (!(init_philo_mutex(info, *philo)))
+	if (!(init_philo_mutex(info)))
 		print_error("Error : mutex init error\n");
 	i = 0;
 	while (i < info->philo_num)
@@ -167,12 +168,24 @@ int	init_arg(char **argv, t_info *info)
 		print_error("Error: argument error.\n");
 	if (argv[5] != NULL && info->must_eat <= 0)
 		print_error("Error: argument error.\n");
-	info->start_time = get_time();
 	return (0);
 }
 
-void	*func_philo(void *arg)
+void	*func_philo(void *argv)
 {
+	t_philo	*philo;
+	t_info	*info;
+
+	philo = (t_philo *)argv;
+	info = philo->info;
+	if (philo->id % 2)
+		usleep(1000);
+	while (info->die != 1)
+	{
+		printf("hi\n");
+		info->die = 0;
+	}
+	return (0);
 }
 
 int	create_philo(t_info *info, t_philo *philo)
@@ -180,11 +193,12 @@ int	create_philo(t_info *info, t_philo *philo)
 	int	i;
 
 	i = 0;
+	info->start_time = get_time();
 	while (i < info->philo_num)
 	{
-		philo[i].eat_time = get_time();
+		philo[i].last_time = get_time();
 		if (pthread_create(&(philo[i].thread), NULL, \
-		func_philo, &philo[i]) != 0)
+		&func_philo, &philo[i]) != 0)
 			return (ERROR);
 		i++;
 	}
@@ -210,7 +224,7 @@ int	main(int argc, char **argv)
 	i = 0;
 	while (i < info.philo_num)
 	{
-		printf("%d %lld\n", philo[i].eat_count, philo[i].eat_time);
+		printf("%d %lld\n", philo[i].eat_count, philo[i].last_time - info.start_time);
 		i++;
 	}
 	return (0);
