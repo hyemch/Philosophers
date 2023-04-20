@@ -6,7 +6,7 @@
 /*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 20:47:42 by hyecheon          #+#    #+#             */
-/*   Updated: 2023/04/19 20:42:09 by hyecheon         ###   ########.fr       */
+/*   Updated: 2023/04/20 16:53:38 by hyecheon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -178,13 +178,6 @@ void	*func_philo(void *argv)
 
 	philo = (t_philo *)argv;
 	info = philo->info;
-	if (philo->id % 2)
-		usleep(1000);
-	while (info->die != 1)
-	{
-		printf("hi\n");
-		info->die = 0;
-	}
 	return (0);
 }
 
@@ -198,8 +191,9 @@ int	create_philo(t_info *info, t_philo *philo)
 	{
 		philo[i].last_time = get_time();
 		if (pthread_create(&(philo[i].thread), NULL, \
-		&func_philo, &philo[i]) != 0)
+		&func_philo, &(philo[i])) != 0)
 			return (ERROR);
+		pthread_join(philo[i].thread, NULL);
 		i++;
 	}
 	return (0);
@@ -220,7 +214,8 @@ int	main(int argc, char **argv)
 	memset(&info, 0, sizeof(t_info));
 	init_arg(argv, &info);
 	init_philo(&info, &philo);
-	create_philo(&info, philo);
+	if (create_philo(&info, philo) != 0)
+		print_error("Error: pthread error.\n");
 	i = 0;
 	while (i < info.philo_num)
 	{
