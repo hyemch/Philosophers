@@ -6,7 +6,7 @@
 /*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 20:51:59 by hyecheon          #+#    #+#             */
-/*   Updated: 2023/04/18 21:11:51 by hyecheon         ###   ########.fr       */
+/*   Updated: 2023/04/20 21:03:50 by hyecheon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ typedef struct s_info
 	int				time_eat;
 	int				time_sleep;
 	int				must_eat;
-	int				die;
+	int				end_flag;
 	long long		start_time;
 	pthread_mutex_t	*forks;
 	pthread_mutex_t	print_mutex;

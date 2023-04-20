@@ -6,7 +6,7 @@
 /*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 20:47:42 by hyecheon          #+#    #+#             */
-/*   Updated: 2023/04/20 16:53:38 by hyecheon         ###   ########.fr       */
+/*   Updated: 2023/04/20 21:23:51 by hyecheon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,15 +83,13 @@ void	atol_intarr(char **arr)
 long long	get_time(void)
 {
 	struct timeval	current;
-	long long		ms;
 
 	if ((gettimeofday(&current, NULL)) == -1)
 	{
 		write(2, "Error: gettimeofday error.\n", 27);
 		return (ERROR);
 	}
-	ms = (current.tv_sec * 1000) + (current.tv_usec / 1000);
-	return (ms);
+	return ((current.tv_sec * 1000) + (current.tv_usec / 1000));
 }
 
 int	init_philo_mutex(t_info *info)
@@ -171,13 +169,33 @@ int	init_arg(char **argv, t_info *info)
 	return (0);
 }
 
-void	*func_philo(void *argv)
+void	*philo_onlyone(t_philo *philo)
+{
+	pthread_mutex_lock(&philo->info->forks[0]);
+	printf("1 has taken a fork\n");
+	pthread_mutex_unlock(&philo->info->forks[0]);
+	return (0);
+}
+
+void	*ft_philo(void *argv)
 {
 	t_philo	*philo;
 	t_info	*info;
 
 	philo = (t_philo *)argv;
 	info = philo->info;
+	if (info->philo_num == 1)
+		return (philo_onlyone(philo));
+	while (info->end_flag != 1)
+	{
+		//왼쪽포크 잡기 성공-> 오른쪽포크 잡기 -> 식사시작 아닐경우 기다리기
+		//pickup
+		//홀수번째 철학자 -> 왼족포크 먼저 짝수번째 철학자 -> 오른쪽 포크 먼저
+		//eat
+		//putdown
+		//sleep
+		//think
+	}
 	return (0);
 }
 
@@ -191,11 +209,19 @@ int	create_philo(t_info *info, t_philo *philo)
 	{
 		philo[i].last_time = get_time();
 		if (pthread_create(&(philo[i].thread), NULL, \
-		&func_philo, &(philo[i])) != 0)
+		&ft_philo, &(philo[i])) != 0)
 			return (ERROR);
-		pthread_join(philo[i].thread, NULL);
 		i++;
 	}
+	i = 0;
+	while (i < info->philo_num)
+	{
+		if (pthread_join(philo[i].thread, NULL) != 0)
+			return (ERROR);
+		i++;
+	}
+	//스레드 종료 함수
+	//pthread_join(philo[i].thread, NULL);
 	return (0);
 }
 
