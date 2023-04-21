@@ -1,1 +1,1 @@
-/goinfre/hyecheon/philosopher에서 CMakeLists.txt을(를) 찾을 수 없습니다 CMakeLists.txt 선택
+/goinfre/hyecheon/philosophers에서 CMakeLists.txt을(를) 찾을 수 없습니다 CMakeLists.txt 선택

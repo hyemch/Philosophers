@@ -6,7 +6,7 @@
 /*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 20:47:42 by hyecheon          #+#    #+#             */
-/*   Updated: 2023/04/20 21:23:51 by hyecheon         ###   ########.fr       */
+/*   Updated: 2023/04/21 18:17:39 by hyecheon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -143,7 +143,7 @@ int	init_philo(t_info *info, t_philo **philo)
 	i = 0;
 	while (i < info->philo_num)
 	{
-		(*philo)[i].id = i;
+		(*philo)[i].id = i + 1;
 		(*philo)[i].fork_left = i;
 		(*philo)[i].fork_right = (i + 1) % info->philo_num;
 		(*philo)[i].eat_count = 0;
@@ -169,12 +169,50 @@ int	init_arg(char **argv, t_info *info)
 	return (0);
 }
 
-void	*philo_onlyone(t_philo *philo)
+//void	*philo_onlyone(t_philo *philo)
+//{
+//	pthread_mutex_lock(&philo->info->forks[0]);
+//	printf("1 has taken a fork\n");
+//	pthread_mutex_unlock(&philo->info->forks[0]);
+//	return (0);
+//}
+
+void	philo_printf(t_info *info, int id, char *str)
 {
-	pthread_mutex_lock(&philo->info->forks[0]);
-	printf("1 has taken a fork\n");
-	pthread_mutex_unlock(&philo->info->forks[0]);
-	return (0);
+	pthread_mutex_lock(&(info->print_mutex));
+	if (!(info->end_flag))
+	{
+		printf("%lld ", get_time() - info->start_time);
+		printf("%d ", id + 1);
+		printf("%s\n", str);
+	}
+	pthread_mutex_unlock(&(info->print_mutex));
+	return ;
+}
+
+int	check_eat_time(t_info *info, t_philo *philo)
+{
+	int	i;
+
+	i = 0;
+	while ()
+}
+
+void	*philo_do(t_info *info, t_philo *philo)
+{
+	pthread_mutex_lock(&(info->forks[philo->fork_left]));
+	philo_printf(info, philo->id, "has taken a fork");
+	if (info->philo_num != 1)
+	{
+		pthread_mutex_lock(&(info->forks[philo->fork_right]));
+		philo_printf(info, philo->id, "has taken a fork");
+		philo_printf(info, philo->id, "is eating");
+		philo->last_time = get_time();
+		check_eat_time()
+		pthread_mutex_unlock(&(info->forks[philo->fork_right]));
+	}
+	pthread_mutex_unlock(&(info->forks[philo->fork_left]));
+	return ;
 }
 
 void	*ft_philo(void *argv)
@@ -184,17 +222,22 @@ void	*ft_philo(void *argv)
 
 	philo = (t_philo *)argv;
 	info = philo->info;
-	if (info->philo_num == 1)
-		return (philo_onlyone(philo));
-	while (info->end_flag != 1)
+	if (philo->id % 2)
+		usleep(1000);
+	while (1)
 	{
-		//왼쪽포크 잡기 성공-> 오른쪽포크 잡기 -> 식사시작 아닐경우 기다리기
-		//pickup
-		//홀수번째 철학자 -> 왼족포크 먼저 짝수번째 철학자 -> 오른쪽 포크 먼저
-		//eat
-		//putdown
-		//sleep
-		//think
+		philo_do(info, philo);
+		if (info->must_eat != 0 && info->must_eat == philo->eat_count)
+			break ;
+		printf("is sleeping\n");
+		printf("is thinking\n");
+	//왼쪽포크 잡기 성공-> 오른쪽포크 잡기 -> 식사시작 아닐경우 기다리기
+	//pickup
+	//홀수번째 철학자 -> 왼족포크 먼저 짝수번째 철학자 -> 오른쪽 포크 먼저
+	//eat
+	//putdown
+	//sleep
+	//think
 	}
 	return (0);
 }
