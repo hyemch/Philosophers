@@ -5,6 +5,18 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/04/22 18:34:34 by hyecheon          #+#    #+#             */
+/*   Updated: 2023/04/24 23:04:48 by hyecheon         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philo.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 20:47:42 by hyecheon          #+#    #+#             */
 /*   Updated: 2023/04/21 18:17:39 by hyecheon         ###   ########.fr       */
 /*                                                                            */
@@ -114,22 +126,6 @@ int	init_philo_mutex(t_info *info)
 	}
 	return (1);
 }
-//int	init_philo_mutex(t_info *info, t_philo *philo)
-//{
-//	int	i;
-//
-//	i = 0;
-//	while (i < info->philo_num)
-//	{
-//		if (pthread_mutex_init(&(philo[i].forks), NULL) < 0)
-//		{
-//			free(philo[i]->forks);
-//			return (0);
-//		}
-//		i++;
-//	}
-//	return (1);
-//}
 
 int	init_philo(t_info *info, t_philo **philo)
 {
@@ -144,7 +140,7 @@ int	init_philo(t_info *info, t_philo **philo)
 	while (i < info->philo_num)
 	{
 		(*philo)[i].info = info;
-		(*philo)[i].id = i + 1;
+		(*philo)[i].id = i;
 		(*philo)[i].fork_left = i;
 		(*philo)[i].fork_right = (i + 1) % info->philo_num;
 		(*philo)[i].eat_count = 0;
@@ -170,14 +166,6 @@ int	init_arg(char **argv, t_info *info)
 	return (0);
 }
 
-//void	*philo_onlyone(t_philo *philo)
-//{
-//	pthread_mutex_lock(&philo->info->forks[0]);
-//	printf("1 has taken a fork\n");
-//	pthread_mutex_unlock(&philo->info->forks[0]);
-//	return (0);
-//}
-
 void	philo_printf(t_info *info, int id, char *str, char *color)
 {
 	pthread_mutex_lock(&(info->print_mutex));
@@ -197,28 +185,28 @@ int	check_eat(t_info *info, t_philo *philo)
 	int	i;
 
 	i = 0;
-	while (i < info->philo_num)
-	{
-		if (info->must_eat != 0 && info->must_eat > philo[i].eat_count)
-			return (0);
-		i++;
-	}
 	if (info->must_eat != 0)
 	{
+		while (i < info->philo_num)
+		{
+			if (info->must_eat > philo[i].eat_count)
+				return (0);
+			i++;
+		}
 		info->end_flag = 1;
 		return (1);
 	}
 	return (0);
 }
 
-void	check_time(long long last_time, t_info *info)
+void	check_time(long long last_time, long long check_time)
 {
 	long long	now_time;
 
 	while (1)
 	{
 		now_time = get_time();
-		if ((now_time - last_time) >= info->time_eat)
+		if ((now_time - last_time) >= check_time)
 			break ;
 		usleep(10);
 	}
@@ -230,7 +218,7 @@ void	philo_sleep(t_info *info, t_philo *philo)
 
 	philo_printf(info, philo->id, "is sleeping", "\033[38;5;183m");
 	sleep_time = get_time();
-	check_time(sleep_time, info);
+	check_time(sleep_time, info->time_sleep);
 }
 
 void	eat_even(t_info *info, t_philo *philo)
@@ -241,7 +229,7 @@ void	eat_even(t_info *info, t_philo *philo)
 	philo_printf(info, philo->id, "has taken a fork", "\033[38;5;211m");
 	philo_printf(info, philo->id, "is eating", "\033[38;5;218m");
 	philo->last_time = get_time();
-	check_time(philo->last_time, info);
+	check_time(philo->last_time, info->time_eat);
 	pthread_mutex_unlock(&(info->forks[philo->fork_left]));
 	pthread_mutex_unlock(&(info->forks[philo->fork_right]));
 }
@@ -254,7 +242,7 @@ void	eat_odd(t_info *info, t_philo *philo)
 	philo_printf(info, philo->id, "has taken a fork", "\033[38;5;211m");
 	philo_printf(info, philo->id, "is eating", "\033[38;5;218m");
 	philo->last_time = get_time();
-	check_time(philo->last_time, info);
+	check_time(philo->last_time, info->time_eat);
 	pthread_mutex_unlock(&(info->forks[philo->fork_right]));
 	pthread_mutex_unlock(&(info->forks[philo->fork_left]));
 }
@@ -305,14 +293,16 @@ void	philo_death(t_info *info, t_philo *philo)
 
 	i = 0;
 	now = get_time();
-	while (i < info->philo_num)
+	while (i < info->philo_num && info->end_flag != 1)
 	{
+		pthread_mutex_lock(&(info->print_mutex));
 		if ((now - philo[i].last_time) > info->time_die)
 		{
 			philo_printf(info, i, "died", "\033[38;5;204m");
 			info->end_flag = 1;
 			break ;
 		}
+		pthread_mutex_unlock(&(info->print_mutex));
 		i++;
 	}
 }
