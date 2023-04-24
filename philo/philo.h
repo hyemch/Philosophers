@@ -5,6 +5,18 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/04/22 18:34:34 by hyecheon          #+#    #+#             */
+/*   Updated: 2023/04/24 23:21:07 by hyecheon         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philo.h                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 20:51:59 by hyecheon          #+#    #+#             */
 /*   Updated: 2023/04/20 21:03:50 by hyecheon         ###   ########.fr       */
 /*                                                                            */
@@ -33,6 +45,7 @@ typedef struct s_info
 	long long		start_time;
 	pthread_mutex_t	*forks;
 	pthread_mutex_t	print_mutex;
+	pthread_mutex_t	status_mutex;
 }	t_info;
 
 typedef struct s_philo
