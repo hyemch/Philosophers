@@ -5,6 +5,18 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/04/22 18:34:34 by hyecheon          #+#    #+#             */
+/*   Updated: 2023/04/24 20:49:17 by hyecheon         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philo.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 20:47:42 by hyecheon          #+#    #+#             */
 /*   Updated: 2023/04/21 18:17:39 by hyecheon         ###   ########.fr       */
 /*                                                                            */
@@ -190,29 +202,44 @@ void	philo_printf(t_info *info, int id, char *str)
 	return ;
 }
 
-int	check_time(long long last_time, t_info *info)
+int	check_eat(t_info *info, t_philo *philo)
+{
+	int	i;
+
+	i = 0;
+	while (i < info->philo_num)
+	{
+		if (info->must_eat != 0 && info->must_eat > philo[i].eat_count)
+			return (0);
+		i++;
+	}
+	info->end_flag = 1;
+	return (1);
+}
+
+void	check_time(long long last_time, t_info *info)
 {
 	long long	now_time;
 
 	while (1)
 	{
-		now = get_time();
+		now_time = get_time();
 		if ((now_time - last_time) >= info->time_eat)
 			break ;
 		usleep(10);
 	}
 }
 
-void	*philo_sleep(t_info *info, t_philo *philo)
+void	philo_sleep(t_info *info, t_philo *philo)
 {
 	long long	sleep_time;
 
 	philo_printf(info, philo->id, "is sleeping");
 	sleep_time = get_time();
-	check_time(sleep_time);
+	check_time(sleep_time, info);
 }
 
-void	*eat_even(t_info *info, t_philo *philo)
+void	eat_even(t_info *info, t_philo *philo)
 {
 	pthread_mutex_lock(&(info->forks[philo->fork_right]));
 	philo_printf(info, philo->id, "has taken a fork");
@@ -220,11 +247,12 @@ void	*eat_even(t_info *info, t_philo *philo)
 	philo_printf(info, philo->id, "has taken a fork");
 	philo_printf(info, philo->id, "is eating");
 	philo->last_time = get_time();
-	check_time(philo->last_time);
+	check_time(philo->last_time, info);
 	pthread_mutex_unlock(&(info->forks[philo->fork_left]));
 	pthread_mutex_unlock(&(info->forks[philo->fork_right]));
 }
-void	*eat_odd(t_info *info, t_philo *philo)
+
+void	eat_odd(t_info *info, t_philo *philo)
 {
 	pthread_mutex_lock(&(info->forks[philo->fork_left]));
 	philo_printf(info, philo->id, "has taken a fork");
@@ -232,12 +260,12 @@ void	*eat_odd(t_info *info, t_philo *philo)
 	philo_printf(info, philo->id, "has taken a fork");
 	philo_printf(info, philo->id, "is eating");
 	philo->last_time = get_time();
-	check_time(philo->last_time);
+	check_time(philo->last_time, info);
 	pthread_mutex_unlock(&(info->forks[philo->fork_right]));
 	pthread_mutex_unlock(&(info->forks[philo->fork_left]));
 }
 
-void	*philo_eat(t_info *info, t_philo *philo)
+void	philo_eat(t_info *info, t_philo *philo)
 {
 	if (info->philo_num == 1)
 	{
@@ -250,6 +278,7 @@ void	*philo_eat(t_info *info, t_philo *philo)
 		eat_odd(info, philo);
 	else
 		eat_even(info, philo);
+	philo->eat_count++;
 }
 
 void	*philo_do(void *argv)
@@ -264,12 +293,53 @@ void	*philo_do(void *argv)
 	while (1)
 	{
 		philo_eat(info, philo);
-		if (info->must_eat != 0 && info->must_eat == philo->eat_count)
+		if (check_eat(info, philo))
 			break ;
+//		if (info->must_eat != 0 && info->must_eat == philo->eat_count)
+//			break ;
 		philo_sleep(info, philo);
 		philo_printf(info, philo->id, "is thinking");
 	}
 	return (0);
+}
+
+void	philo_death(t_info *info, t_philo *philo)
+{
+	int			i;
+	long long	now;
+
+	i = 0;
+	now = get_time();
+	while (i < info->philo_num)
+	{
+		if ((now - philo[i].last_time) > info->time_die)
+		{
+			philo_printf(info, i, "died");
+			info->end_flag = 1;
+			break ;
+		}
+		i++;
+	}
+}
+
+void	philo_free(t_info *info, t_philo *philo)
+{
+	int	i;
+
+	i = 0;
+	while (i < info->philo_num)
+	{
+		pthread_mutex_destroy(&info->forks[i]);
+		i++;
+	}
+	free(info->forks);
+	i = 0;
+	while (i < info->philo_num)
+	{
+		free(&philo[i]);
+		i++;
+	}
+	pthread_mutex_destroy(&info->print_mutex);
 }
 
 int	create_philo(t_info *info, t_philo *philo)
@@ -293,8 +363,8 @@ int	create_philo(t_info *info, t_philo *philo)
 			return (ERROR);
 		i++;
 	}
-	//스레드 종료 함수
-	//pthread_join(philo[i].thread, NULL);
+	philo_death(info, philo);
+	philo_free(info, philo);
 	return (0);
 }
 
