@@ -143,6 +143,7 @@ int	init_philo(t_info *info, t_philo **philo)
 	i = 0;
 	while (i < info->philo_num)
 	{
+		(*philo)[i].info = info;
 		(*philo)[i].id = i + 1;
 		(*philo)[i].fork_left = i;
 		(*philo)[i].fork_right = (i + 1) % info->philo_num;
@@ -202,8 +203,12 @@ int	check_eat(t_info *info, t_philo *philo)
 			return (0);
 		i++;
 	}
-	info->end_flag = 1;
-	return (1);
+	if (info->must_eat != 0)
+	{
+		info->end_flag = 1;
+		return (1);
+	}
+	return (0);
 }
 
 void	check_time(long long last_time, t_info *info)
@@ -261,12 +266,13 @@ void	philo_eat(t_info *info, t_philo *philo)
 		pthread_mutex_lock(&(info->forks[0]));
 		philo_printf(info, philo->id, "has taken a fork", "\033[38;5;211m");
 		pthread_mutex_unlock(&(info->forks[0]));
+		info->end_flag = 1;
 		return ;
 	}
-	if (info->philo_num % 2)
-		eat_odd(info, philo);
-	else
+	if (philo->id % 2)
 		eat_even(info, philo);
+	else
+		eat_odd(info, philo);
 	philo->eat_count++;
 }
 
@@ -279,7 +285,7 @@ void	*philo_do(void *argv)
 	info = philo->info;
 	if (philo->id % 2)
 		usleep(100);
-	while (1)
+	while (info->end_flag != 1)
 	{
 		philo_eat(info, philo);
 		if (check_eat(info, philo))
@@ -288,8 +294,6 @@ void	*philo_do(void *argv)
 //			break ;
 		philo_sleep(info, philo);
 		philo_printf(info, philo->id, "is thinking", "\033[38;5;141m");
-		if (info->end_flag)
-			break ;
 	}
 	return (0);
 }
