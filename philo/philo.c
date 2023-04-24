@@ -5,18 +5,6 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/04/22 18:34:34 by hyecheon          #+#    #+#             */
-/*   Updated: 2023/04/24 20:49:17 by hyecheon         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   philo.c                                            :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 20:47:42 by hyecheon          #+#    #+#             */
 /*   Updated: 2023/04/21 18:17:39 by hyecheon         ###   ########.fr       */
 /*                                                                            */
@@ -189,14 +177,15 @@ int	init_arg(char **argv, t_info *info)
 //	return (0);
 //}
 
-void	philo_printf(t_info *info, int id, char *str)
+void	philo_printf(t_info *info, int id, char *str, char *color)
 {
 	pthread_mutex_lock(&(info->print_mutex));
 	if (!(info->end_flag))
 	{
 		printf("%lld ", get_time() - info->start_time);
-		printf("%d ", id + 1);
-		printf("%s\n", str);
+		printf("\033[38;5;115m%d ", id + 1);
+		printf("%s%s\n", color, str);
+		printf("\033[0m");
 	}
 	pthread_mutex_unlock(&(info->print_mutex));
 	return ;
@@ -234,7 +223,7 @@ void	philo_sleep(t_info *info, t_philo *philo)
 {
 	long long	sleep_time;
 
-	philo_printf(info, philo->id, "is sleeping");
+	philo_printf(info, philo->id, "is sleeping", "\033[38;5;183m");
 	sleep_time = get_time();
 	check_time(sleep_time, info);
 }
@@ -242,10 +231,10 @@ void	philo_sleep(t_info *info, t_philo *philo)
 void	eat_even(t_info *info, t_philo *philo)
 {
 	pthread_mutex_lock(&(info->forks[philo->fork_right]));
-	philo_printf(info, philo->id, "has taken a fork");
+	philo_printf(info, philo->id, "has taken a fork", "\033[38;5;211m");
 	pthread_mutex_lock(&(info->forks[philo->fork_left]));
-	philo_printf(info, philo->id, "has taken a fork");
-	philo_printf(info, philo->id, "is eating");
+	philo_printf(info, philo->id, "has taken a fork", "\033[38;5;211m");
+	philo_printf(info, philo->id, "is eating", "\033[38;5;218m");
 	philo->last_time = get_time();
 	check_time(philo->last_time, info);
 	pthread_mutex_unlock(&(info->forks[philo->fork_left]));
@@ -255,10 +244,10 @@ void	eat_even(t_info *info, t_philo *philo)
 void	eat_odd(t_info *info, t_philo *philo)
 {
 	pthread_mutex_lock(&(info->forks[philo->fork_left]));
-	philo_printf(info, philo->id, "has taken a fork");
+	philo_printf(info, philo->id, "has taken a fork", "\033[38;5;211m");
 	pthread_mutex_lock(&(info->forks[philo->fork_right]));
-	philo_printf(info, philo->id, "has taken a fork");
-	philo_printf(info, philo->id, "is eating");
+	philo_printf(info, philo->id, "has taken a fork", "\033[38;5;211m");
+	philo_printf(info, philo->id, "is eating", "\033[38;5;218m");
 	philo->last_time = get_time();
 	check_time(philo->last_time, info);
 	pthread_mutex_unlock(&(info->forks[philo->fork_right]));
@@ -270,7 +259,7 @@ void	philo_eat(t_info *info, t_philo *philo)
 	if (info->philo_num == 1)
 	{
 		pthread_mutex_lock(&(info->forks[0]));
-		philo_printf(info, philo->id, "has taken a fork");
+		philo_printf(info, philo->id, "has taken a fork", "\033[38;5;211m");
 		pthread_mutex_unlock(&(info->forks[0]));
 		return ;
 	}
@@ -298,7 +287,7 @@ void	*philo_do(void *argv)
 //		if (info->must_eat != 0 && info->must_eat == philo->eat_count)
 //			break ;
 		philo_sleep(info, philo);
-		philo_printf(info, philo->id, "is thinking");
+		philo_printf(info, philo->id, "is thinking", "\033[38;5;141m");
 	}
 	return (0);
 }
@@ -314,7 +303,7 @@ void	philo_death(t_info *info, t_philo *philo)
 	{
 		if ((now - philo[i].last_time) > info->time_die)
 		{
-			philo_printf(info, i, "died");
+			philo_printf(info, i, "died", "\033[38;5;204m");
 			info->end_flag = 1;
 			break ;
 		}
