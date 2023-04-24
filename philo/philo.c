@@ -5,6 +5,18 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/04/22 18:34:34 by hyecheon          #+#    #+#             */
+/*   Updated: 2023/04/24 22:06:48 by hyecheon         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philo.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 20:47:42 by hyecheon          #+#    #+#             */
 /*   Updated: 2023/04/21 18:17:39 by hyecheon         ###   ########.fr       */
 /*                                                                            */
@@ -288,6 +300,8 @@ void	*philo_do(void *argv)
 //			break ;
 		philo_sleep(info, philo);
 		philo_printf(info, philo->id, "is thinking", "\033[38;5;141m");
+		if (info->end_flag)
+			break ;
 	}
 	return (0);
 }
@@ -345,6 +359,7 @@ int	create_philo(t_info *info, t_philo *philo)
 			return (ERROR);
 		i++;
 	}
+	philo_death(info, philo);
 	i = 0;
 	while (i < info->philo_num)
 	{
@@ -352,7 +367,6 @@ int	create_philo(t_info *info, t_philo *philo)
 			return (ERROR);
 		i++;
 	}
-	philo_death(info, philo);
 	philo_free(info, philo);
 	return (0);
 }
@@ -361,7 +375,6 @@ int	main(int argc, char **argv)
 {
 	t_info		info;
 	t_philo		*philo;
-	int			i;
 
 	if (argc != 6 && argc != 5)
 	{
@@ -374,11 +387,5 @@ int	main(int argc, char **argv)
 	init_philo(&info, &philo);
 	if (create_philo(&info, philo) != 0)
 		print_error("Error: pthread error.\n");
-	i = 0;
-	while (i < info.philo_num)
-	{
-		printf("%d %lld\n", philo[i].eat_count, philo[i].last_time - info.start_time);
-		i++;
-	}
 	return (0);
 }
