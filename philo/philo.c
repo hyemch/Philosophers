@@ -6,7 +6,7 @@
 /*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 20:47:42 by hyecheon          #+#    #+#             */
-/*   Updated: 2023/04/26 20:27:18 by hyecheon         ###   ########.fr       */
+/*   Updated: 2023/04/26 21:28:06 by hyecheon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -236,17 +236,15 @@ int	check_end(t_info *info, t_philo *philo)
 	while (i < info->philo_num)
 	{
 		pthread_mutex_lock(&(info->eat_mutex));
-		if (j == info->philo_num)
-		{
-			pthread_mutex_unlock(&(info->eat_mutex));
-			return (1);
-		}
 		if (philo[i].eat_count >= info->must_eat)
+		{
+			printf("philo[%d] eat count : %d\n", i, philo[i].eat_count);
 			j++;
+		}
 		pthread_mutex_unlock(&(info->eat_mutex));
 		i++;
 	}
-	return (0);
+	return (j);
 }
 
 void	check_time(long long last_time, long long check_time)
@@ -329,7 +327,7 @@ int	philo_eat(t_info *info, t_philo *philo)
 	else
 		eat_odd(info, philo);
 	pthread_mutex_lock(&(info->eat_mutex));
-		philo->eat_count++;
+	philo->eat_count++;
 	pthread_mutex_unlock(&(info->eat_mutex));
 //	pthread_mutex_lock(&(info->status_mutex));
 //	if (check_eat(info, philo))
@@ -376,8 +374,6 @@ void	philo_death(t_info *info, t_philo *philo)
 	flag = 0;
 	while (1)
 	{
-//		if (check_end(info, philo))
-//			break ;
 		i = 0;
 		while (i < info->philo_num)
 		{
@@ -386,13 +382,14 @@ void	philo_death(t_info *info, t_philo *philo)
 			if ((now - philo[i].last_time) > info->time_die)
 			{
 				philo_printf(info, i, "died", "\033[38;5;204m");
-				flag = 1;
 				pthread_mutex_unlock(&(info->status_mutex));
-				break ;
+				flag = 1;
 			}
 			pthread_mutex_unlock(&(info->status_mutex));
 			i++;
 		}
+		if (check_end(info, philo) == info->philo_num)
+			flag = 1;
 		if (flag)
 			break ;
 	}
