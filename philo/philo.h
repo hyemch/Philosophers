@@ -22,6 +22,9 @@
 
 # define ERROR -1
 
+//포크상태를 나타내는 int배열 선언->포크상태 == 1일때 포크를 뮤텍스로 보호
+//각각의 필로소퍼가 end_flag를 가지고 있게 만들기.
+
 typedef struct s_info
 {
 	int				philo_num;
@@ -31,9 +34,11 @@ typedef struct s_info
 	int				must_eat;
 	int				end_flag;
 	long long		start_time;
+	int				*fork;
 	pthread_mutex_t	*forks;
-	pthread_mutex_t	print_mutex;
-	pthread_mutex_t	status_mutex;
+	pthread_mutex_t	print_mutex; //프린트
+	pthread_mutex_t	status_mutex; //now - lasttime 관련 관리
+	pthread_mutex_t	eat_mutex; //먹은 횟수 관리
 }	t_info;
 
 typedef struct s_philo
@@ -43,7 +48,7 @@ typedef struct s_philo
 	long long		last_time;
 	int				fork_left;
 	int				fork_right;
-	int				check;
+//	int 			check;
 	pthread_t		thread;
 	t_info			*info;
 }	t_philo;

@@ -6,7 +6,7 @@
 /*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 20:47:42 by hyecheon          #+#    #+#             */
-/*   Updated: 2023/04/25 22:13:44 by hyecheon         ###   ########.fr       */
+/*   Updated: 2023/04/26 20:27:18 by hyecheon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,6 +100,8 @@ int	init_philo_mutex(t_info *info)
 		return (0);
 	if (pthread_mutex_init(&(info->status_mutex), NULL) != 0)
 		return (0);
+	if (pthread_mutex_init(&(info->eat_mutex), NULL) != 0)
+		return (0);
 	info->forks = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t) \
 	* info->philo_num);
 	if (!(info->forks))
@@ -134,7 +136,6 @@ int	init_philo(t_info *info, t_philo **philo)
 		(*philo)[i].fork_left = i;
 		(*philo)[i].fork_right = (i + 1) % info->philo_num;
 		(*philo)[i].eat_count = 0;
-		(*philo)[i].check = 0;
 		i++;
 	}
 	return (0);
@@ -142,6 +143,8 @@ int	init_philo(t_info *info, t_philo **philo)
 
 int	init_arg(char **argv, t_info *info)
 {
+	int	i;
+
 	atol_intarr(argv);
 	info->philo_num = (int)ft_atol(argv[1]);
 	info->time_die = (int)ft_atol(argv[2]);
@@ -154,17 +157,50 @@ int	init_arg(char **argv, t_info *info)
 		print_error("Error: argument error.\n");
 	if (argv[5] != NULL && info->must_eat <= 0)
 		print_error("Error: argument error.\n");
+	info->fork = (int *)malloc(sizeof(int) * info->philo_num);
+	if (!(info->fork))
+		print_error("Error: argument error.\n");
+	i = 0;
+	while (i < info->philo_num)
+	{
+		info->fork[i] = 0;
+		i++;
+	}
+	return (0);
+}
+
+int	ft_strncmp(const char *s1, const char *s2, size_t n)
+{
+	size_t				i;
+	unsigned char		*sptr1;
+	unsigned char		*sptr2;
+
+	sptr1 = (unsigned char *)s1;
+	sptr2 = (unsigned char *)s2;
+	i = 0;
+	while (i < n && (sptr1[i] != '\0' || sptr2[i] != '\0'))
+	{
+		if (sptr1[i] != sptr2[i])
+			return (sptr1[i] - sptr2[i]);
+		i++;
+	}
 	return (0);
 }
 
 void	philo_printf(t_info *info, int id, char *str, char *color)
 {
 	pthread_mutex_lock(&(info->print_mutex));
-	printf("%lld ", get_time() - info->start_time);
-	printf("\033[38;5;115m%d ", id + 1);
-	printf("%s%s\n", color, str);
-	printf("\033[0m");
+	if (!(info->end_flag))
+	{
+		printf("%lld ", get_time() - info->start_time);
+		printf("\033[38;5;115m%d ", id + 1);
+		printf("%s%s\n", color, str);
+		printf("\033[0m");
+		if (ft_strncmp(str, "died", 4) == 0)
+			info->end_flag = 1;
+	}
 	pthread_mutex_unlock(&(info->print_mutex));
+	return ;
 }
 
 int	check_eat(t_info *info, t_philo *philo)
@@ -176,8 +212,13 @@ int	check_eat(t_info *info, t_philo *philo)
 	{
 		while (i < info->philo_num)
 		{
+			pthread_mutex_lock(&(info->eat_mutex));
 			if (info->must_eat > philo[i].eat_count)
+			{
+				pthread_mutex_unlock(&(info->eat_mutex));
 				return (0);
+			}
+			pthread_mutex_unlock(&(info->eat_mutex));
 			i++;
 		}
 		return (1);
@@ -185,34 +226,27 @@ int	check_eat(t_info *info, t_philo *philo)
 	return (0);
 }
 
-void	check_death(t_info *info, t_philo *philo)
+int	check_end(t_info *info, t_philo *philo)
 {
-	long long	now;
-	int			i;
-	int			flag;
+	int	i;
+	int	j;
 
-	flag = 0;
-	now = get_time();
-	printf("%d\n", info->end_flag);
-	while (1)
+	i = 0;
+	j = 0;
+	while (i < info->philo_num)
 	{
-		if (info->end_flag == 1)
-			break ;
-		i = 0;
-		while (i < info->philo_num)
+		pthread_mutex_lock(&(info->eat_mutex));
+		if (j == info->philo_num)
 		{
-			pthread_mutex_lock(&(info->status_mutex));
-			if ((now - philo[i].last_time) > info->time_die)
-			{
-				philo_printf(info, i, "died", "\033[38;5;204m");
-				flag = 1;
-			}
-			pthread_mutex_unlock(&(info->status_mutex));
-			i++;
+			pthread_mutex_unlock(&(info->eat_mutex));
+			return (1);
 		}
-		if (flag)
-			break ;
+		if (philo[i].eat_count >= info->must_eat)
+			j++;
+		pthread_mutex_unlock(&(info->eat_mutex));
+		i++;
 	}
+	return (0);
 }
 
 void	check_time(long long last_time, long long check_time)
@@ -243,13 +277,15 @@ void	eat_even(t_info *info, t_philo *philo)
 	philo_printf(info, philo->id, "has taken a fork", "\033[38;5;211m");
 	pthread_mutex_lock(&(info->forks[philo->fork_left]));
 	philo_printf(info, philo->id, "has taken a fork", "\033[38;5;211m");
+	info->fork[philo->fork_left] = 1;
+	info->fork[philo->fork_right] = 1;
 	philo_printf(info, philo->id, "is eating", "\033[38;5;218m");
 	pthread_mutex_lock(&(info->status_mutex));
 	philo->last_time = get_time();
-	philo->eat_count++;
 	check_time(philo->last_time, info->time_eat);
-	philo->last_time = get_time();
 	pthread_mutex_unlock(&(info->status_mutex));
+	info->fork[philo->fork_left] = 0;
+	info->fork[philo->fork_right] = 0;
 	pthread_mutex_unlock(&(info->forks[philo->fork_left]));
 	pthread_mutex_unlock(&(info->forks[philo->fork_right]));
 }
@@ -260,13 +296,15 @@ void	eat_odd(t_info *info, t_philo *philo)
 	philo_printf(info, philo->id, "has taken a fork", "\033[38;5;211m");
 	pthread_mutex_lock(&(info->forks[philo->fork_right]));
 	philo_printf(info, philo->id, "has taken a fork", "\033[38;5;211m");
+	info->fork[philo->fork_left] = 1;
+	info->fork[philo->fork_right] = 1;
 	philo_printf(info, philo->id, "is eating", "\033[38;5;218m");
 	pthread_mutex_lock(&(info->status_mutex));
 	philo->last_time = get_time();
-	philo->eat_count++;
 	check_time(philo->last_time, info->time_eat);
-	philo->last_time = get_time();
 	pthread_mutex_unlock(&(info->status_mutex));
+	info->fork[philo->fork_left] = 0;
+	info->fork[philo->fork_right] = 0;
 	pthread_mutex_unlock(&(info->forks[philo->fork_right]));
 	pthread_mutex_unlock(&(info->forks[philo->fork_left]));
 }
@@ -275,12 +313,13 @@ void	philo_solo(t_info *info, t_philo *philo)
 {
 	pthread_mutex_lock(&(info->forks[0]));
 	philo_printf(info, philo->id, "has taken a fork", "\033[38;5;211m");
+	info->fork[0] = 1;
 	pthread_mutex_unlock(&(info->forks[0]));
-	pthread_mutex_lock(&(info->status_mutex));
-	philo->last_time = get_time();
-	check_time(philo->last_time, info->time_die);
-	philo->last_time = get_time();
-	pthread_mutex_unlock(&(info->status_mutex));
+//	pthread_mutex_lock(&(info->status_mutex));
+//	philo->last_time = get_time();
+//	check_time(philo->last_time, info->time_die);
+//	philo->last_time = get_time();
+//	pthread_mutex_unlock(&(info->status_mutex));
 }
 
 int	philo_eat(t_info *info, t_philo *philo)
@@ -289,14 +328,17 @@ int	philo_eat(t_info *info, t_philo *philo)
 		eat_even(info, philo);
 	else
 		eat_odd(info, philo);
-	pthread_mutex_lock(&(info->status_mutex));
-	if (check_eat(info, philo))
-	{
-		info->end_flag = 1;
-		pthread_mutex_unlock(&(info->status_mutex));
-		return (1);
-	}
-	pthread_mutex_unlock(&(info->status_mutex));
+	pthread_mutex_lock(&(info->eat_mutex));
+		philo->eat_count++;
+	pthread_mutex_unlock(&(info->eat_mutex));
+//	pthread_mutex_lock(&(info->status_mutex));
+//	if (check_eat(info, philo))
+//	{
+//		info->end_flag = 1;
+//		pthread_mutex_unlock(&(info->status_mutex));
+//		return (1);
+//	}
+//	pthread_mutex_unlock(&(info->status_mutex));
 	return (0);
 }
 
@@ -325,30 +367,35 @@ int	philo_eat(t_info *info, t_philo *philo)
 //	}
 //}
 
-void	*philo_do(void *argv)
+void	philo_death(t_info *info, t_philo *philo)
 {
-	t_philo	*philo;
-	t_info	*info;
+	long long	now;
+	int			i;
+	int			flag;
 
-	philo = (t_philo *)argv;
-	info = philo->info;
-	if (info->philo_num == 1)
-	{
-		philo_solo(info, philo);
-		return (0);
-	}
-	if (philo->id % 2)
-		usleep(100);
+	flag = 0;
 	while (1)
 	{
-		if (philo_eat(info, philo))
-			break ;
-//		if (check_eat(info, philo))
+//		if (check_end(info, philo))
 //			break ;
-		philo_sleep(info, philo);
-		philo_printf(info, philo->id, "is thinking", "\033[38;5;141m");
+		i = 0;
+		while (i < info->philo_num)
+		{
+			now = get_time();
+			pthread_mutex_lock(&(info->status_mutex));
+			if ((now - philo[i].last_time) > info->time_die)
+			{
+				philo_printf(info, i, "died", "\033[38;5;204m");
+				flag = 1;
+				pthread_mutex_unlock(&(info->status_mutex));
+				break ;
+			}
+			pthread_mutex_unlock(&(info->status_mutex));
+			i++;
+		}
+		if (flag)
+			break ;
 	}
-	return (0);
 }
 
 void	philo_free(t_info *info, t_philo *philo)
@@ -370,6 +417,32 @@ void	philo_free(t_info *info, t_philo *philo)
 	}
 	pthread_mutex_destroy(&info->print_mutex);
 	pthread_mutex_destroy(&info->status_mutex);
+	pthread_mutex_destroy(&info->eat_mutex);
+}
+
+void	*philo_do(void *argv)
+{
+	t_philo	*philo;
+	t_info	*info;
+
+	philo = (t_philo *)argv;
+	info = philo->info;
+	if (info->philo_num == 1)
+	{
+		philo_solo(info, philo);
+		return (0);
+	}
+	if (philo->id % 2)
+		usleep(100);
+	while (1)
+	{
+		philo_eat(info, philo);
+		if (check_eat(info, philo))
+			break ;
+		philo_sleep(info, philo);
+		philo_printf(info, philo->id, "is thinking", "\033[38;5;141m");
+	}
+	return (0);
 }
 
 int	create_philo(t_info *info, t_philo *philo)
@@ -386,7 +459,7 @@ int	create_philo(t_info *info, t_philo *philo)
 			return (ERROR);
 		i++;
 	}
-	check_death(info, philo);
+	philo_death(info, philo);
 	i = 0;
 	while (i < info->philo_num)
 	{
