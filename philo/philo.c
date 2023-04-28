@@ -241,7 +241,7 @@ void	check_time(long long last_time, long long check_time)
 		now_time = get_time();
 		if ((now_time - last_time) >= check_time)
 			break ;
-		usleep(16);
+		usleep(128);
 	}
 }
 
@@ -371,6 +371,7 @@ void	philo_monitoring(t_info *info, t_philo *philo)
 			break ;
 		if (philo_death(info, philo))
 			break ;
+		usleep(256);
 	}
 	pthread_mutex_lock(&(info->endflag_mutex));
 	info->end_flag = 1;
@@ -407,7 +408,7 @@ void	*philo_do(void *argv)
 		return (0);
 	}
 	if (!(philo->id % 2))
-		usleep(64);
+		usleep(256);
 	while (!(check_end(info)))
 	{
 		philo_eat(info, philo);
