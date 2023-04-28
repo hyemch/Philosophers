@@ -48,7 +48,7 @@ typedef struct s_philo
 	long long		last_time;
 	int				fork_left;
 	int				fork_right;
-//	int 			check;
+	int				eat_check;
 	pthread_t		thread;
 	t_info			*info;
 }	t_philo;
