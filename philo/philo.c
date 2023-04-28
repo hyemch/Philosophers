@@ -6,7 +6,7 @@
 /*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 20:47:42 by hyecheon          #+#    #+#             */
-/*   Updated: 2023/04/26 21:28:06 by hyecheon         ###   ########.fr       */
+/*   Updated: 2023/04/28 19:43:39 by hyecheon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,9 +134,9 @@ int	init_philo(t_info *info, t_philo **philo)
 	while (i < info->philo_num)
 	{
 		(*philo)[i].info = info;
-		(*philo)[i].id = i + 1;
-		(*philo)[i].fork_left = i;
-		(*philo)[i].fork_right = (i + 1) % info->philo_num;
+		(*philo)[i].id = i;
+		(*philo)[i].fork_left = (i + info->philo_num - 1) % info->philo_num;
+		(*philo)[i].fork_right = i;
 		(*philo)[i].eat_count = 0;
 		(*philo)[i].eat_check = 0;
 		i++;
@@ -172,24 +172,6 @@ int	init_arg(char **argv, t_info *info)
 	return (0);
 }
 
-int	ft_strncmp(const char *s1, const char *s2, size_t n)
-{
-	size_t				i;
-	unsigned char		*sptr1;
-	unsigned char		*sptr2;
-
-	sptr1 = (unsigned char *)s1;
-	sptr2 = (unsigned char *)s2;
-	i = 0;
-	while (i < n && (sptr1[i] != '\0' || sptr2[i] != '\0'))
-	{
-		if (sptr1[i] != sptr2[i])
-			return (sptr1[i] - sptr2[i]);
-		i++;
-	}
-	return (0);
-}
-
 int	check_end(t_info *info)
 {
 	pthread_mutex_lock(&(info->endflag_mutex));
@@ -208,7 +190,7 @@ void	philo_printf(t_info *info, int id, char *str, char *color)
 	if (!(check_end(info)))
 	{
 		printf("%lld ", get_time() - info->start_time);
-		printf("\033[38;5;115m%d ", id);
+		printf("\033[38;5;115m%d ", id + 1);
 		printf("%s%s\n", color, str);
 		printf("\033[0m");
 	}
@@ -259,7 +241,7 @@ void	check_time(long long last_time, long long check_time)
 		now_time = get_time();
 		if ((now_time - last_time) >= check_time)
 			break ;
-		usleep(8);
+		usleep(16);
 	}
 }
 
@@ -285,8 +267,8 @@ void	eat_even(t_info *info, t_philo *philo)
 	info->fork[philo->fork_right] = 0;
 	pthread_mutex_lock(&(info->status_mutex));
 	philo->last_time = get_time();
-	check_time(philo->last_time, info->time_eat);
 	pthread_mutex_unlock(&(info->status_mutex));
+	check_time(philo->last_time, info->time_eat);
 	pthread_mutex_unlock(&(info->forks[philo->fork_right]));
 	pthread_mutex_unlock(&(info->forks[philo->fork_left]));
 }
@@ -304,8 +286,8 @@ void	eat_odd(t_info *info, t_philo *philo)
 	info->fork[philo->fork_right] = 0;
 	pthread_mutex_lock(&(info->status_mutex));
 	philo->last_time = get_time();
-	check_time(philo->last_time, info->time_eat);
 	pthread_mutex_unlock(&(info->status_mutex));
+	check_time(philo->last_time, info->time_eat);
 	pthread_mutex_unlock(&(info->forks[philo->fork_right]));
 	pthread_mutex_unlock(&(info->forks[philo->fork_left]));
 }
@@ -386,10 +368,13 @@ void	philo_monitoring(t_info *info, t_philo *philo)
 	while (1)
 	{
 		if (check_philo(info, philo) == info->philo_num)
-			return ;
+			break ;
 		if (philo_death(info, philo))
-			return ;
+			break ;
 	}
+	pthread_mutex_lock(&(info->endflag_mutex));
+	info->end_flag = 1;
+	pthread_mutex_unlock(&(info->endflag_mutex));
 }
 
 void	philo_free(t_info *info, t_philo *philo)
@@ -402,13 +387,8 @@ void	philo_free(t_info *info, t_philo *philo)
 		pthread_mutex_destroy(&info->forks[i]);
 		i++;
 	}
-	free(info->forks);
-	i = 0;
-	while (i < info->philo_num)
-	{
-		free(&philo[i]);
-		i++;
-	}
+	free(info->fork);
+	free(philo);
 	pthread_mutex_destroy(&info->print_mutex);
 	pthread_mutex_destroy(&info->status_mutex);
 	pthread_mutex_destroy(&info->eat_mutex);
@@ -431,7 +411,7 @@ void	*philo_do(void *argv)
 	while (!(check_end(info)))
 	{
 		philo_eat(info, philo);
-		if (check_eat(info, philo))
+		if (check_end(info))
 			break ;
 		philo_sleep(info, philo);
 		philo_printf(info, philo->id, "is thinking", "\033[38;5;141m");
