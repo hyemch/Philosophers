@@ -39,6 +39,7 @@ typedef struct s_info
 	pthread_mutex_t	print_mutex; //프린트
 	pthread_mutex_t	status_mutex; //now - lasttime 관련 관리
 	pthread_mutex_t	eat_mutex; //먹은 횟수 관리
+	pthread_mutex_t endflag_mutex;
 }	t_info;
 
 typedef struct s_philo

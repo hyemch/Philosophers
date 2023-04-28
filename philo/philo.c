@@ -102,6 +102,8 @@ int	init_philo_mutex(t_info *info)
 		return (0);
 	if (pthread_mutex_init(&(info->eat_mutex), NULL) != 0)
 		return (0);
+	if (pthread_mutex_init(&(info->endflag_mutex), NULL) != 0)
+		return (0);
 	info->forks = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t) \
 	* info->philo_num);
 	if (!(info->forks))
@@ -132,7 +134,7 @@ int	init_philo(t_info *info, t_philo **philo)
 	while (i < info->philo_num)
 	{
 		(*philo)[i].info = info;
-		(*philo)[i].id = i;
+		(*philo)[i].id = i + 1;
 		(*philo)[i].fork_left = i;
 		(*philo)[i].fork_right = (i + 1) % info->philo_num;
 		(*philo)[i].eat_count = 0;
@@ -188,17 +190,27 @@ int	ft_strncmp(const char *s1, const char *s2, size_t n)
 	return (0);
 }
 
+int	check_end(t_info *info)
+{
+	pthread_mutex_lock(&(info->endflag_mutex));
+	if (info->end_flag == 1)
+	{
+		pthread_mutex_unlock(&(info->endflag_mutex));
+		return (1);
+	}
+	pthread_mutex_unlock(&(info->endflag_mutex));
+	return (0);
+}
+
 void	philo_printf(t_info *info, int id, char *str, char *color)
 {
 	pthread_mutex_lock(&(info->print_mutex));
-	if (!(info->end_flag))
+	if (!(check_end(info)))
 	{
 		printf("%lld ", get_time() - info->start_time);
-		printf("\033[38;5;115m%d ", id + 1);
+		printf("\033[38;5;115m%d ", id);
 		printf("%s%s\n", color, str);
 		printf("\033[0m");
-		if (ft_strncmp(str, "died", 4) == 0)
-			info->end_flag = 1;
 	}
 	pthread_mutex_unlock(&(info->print_mutex));
 }
@@ -247,7 +259,7 @@ void	check_time(long long last_time, long long check_time)
 		now_time = get_time();
 		if ((now_time - last_time) >= check_time)
 			break ;
-		usleep(16);
+		usleep(8);
 	}
 }
 
@@ -271,12 +283,12 @@ void	eat_even(t_info *info, t_philo *philo)
 	philo_printf(info, philo->id, "is eating", "\033[38;5;218m");
 	info->fork[philo->fork_left] = 0;
 	info->fork[philo->fork_right] = 0;
-	pthread_mutex_unlock(&(info->forks[philo->fork_left]));
-	pthread_mutex_unlock(&(info->forks[philo->fork_right]));
 	pthread_mutex_lock(&(info->status_mutex));
 	philo->last_time = get_time();
 	check_time(philo->last_time, info->time_eat);
 	pthread_mutex_unlock(&(info->status_mutex));
+	pthread_mutex_unlock(&(info->forks[philo->fork_right]));
+	pthread_mutex_unlock(&(info->forks[philo->fork_left]));
 }
 
 void	eat_odd(t_info *info, t_philo *philo)
@@ -290,12 +302,12 @@ void	eat_odd(t_info *info, t_philo *philo)
 	philo_printf(info, philo->id, "is eating", "\033[38;5;218m");
 	info->fork[philo->fork_left] = 0;
 	info->fork[philo->fork_right] = 0;
-	pthread_mutex_unlock(&(info->forks[philo->fork_right]));
-	pthread_mutex_unlock(&(info->forks[philo->fork_left]));
 	pthread_mutex_lock(&(info->status_mutex));
 	philo->last_time = get_time();
 	check_time(philo->last_time, info->time_eat);
 	pthread_mutex_unlock(&(info->status_mutex));
+	pthread_mutex_unlock(&(info->forks[philo->fork_right]));
+	pthread_mutex_unlock(&(info->forks[philo->fork_left]));
 }
 
 void	philo_solo(t_info *info, t_philo *philo)
@@ -309,9 +321,9 @@ void	philo_solo(t_info *info, t_philo *philo)
 void	philo_eat(t_info *info, t_philo *philo)
 {
 	if (philo->id % 2)
-		eat_even(info, philo);
-	else
 		eat_odd(info, philo);
+	else
+		eat_even(info, philo);
 	pthread_mutex_lock(&(info->eat_mutex));
 	philo->eat_count++;
 	pthread_mutex_unlock(&(info->eat_mutex));
@@ -352,12 +364,15 @@ int	philo_death(t_info *info, t_philo *philo)
 	i = 0;
 	while (i < info->philo_num)
 	{
-		now = get_time();
 		pthread_mutex_lock(&(info->status_mutex));
+		now = get_time();
 		if ((now - philo[i].last_time) > info->time_die)
 		{
-			philo_printf(info, i, "died", "\033[38;5;204m");
+			philo_printf(info, philo[i].id, "died", "\033[38;5;204m");
 			pthread_mutex_unlock(&(info->status_mutex));
+			pthread_mutex_lock(&(info->endflag_mutex));
+			info->end_flag = 1;
+			pthread_mutex_unlock(&(info->endflag_mutex));
 			return (1);
 		}
 		pthread_mutex_unlock(&(info->status_mutex));
@@ -411,9 +426,9 @@ void	*philo_do(void *argv)
 		philo_solo(info, philo);
 		return (0);
 	}
-	if (philo->id % 2)
-		usleep(100);
-	while (1)
+	if (!(philo->id % 2))
+		usleep(64);
+	while (!(check_end(info)))
 	{
 		philo_eat(info, philo);
 		if (check_eat(info, philo))
@@ -441,7 +456,11 @@ int	create_philo(t_info *info, t_philo *philo)
 	philo_monitoring(info, philo);
 	i = 0;
 	while (i < info->philo_num)
-		pthread_join(philo[i++].thread, NULL);
+	{
+		if (pthread_join(philo[i].thread, NULL) != 0)
+			return (ERROR);
+		i++;
+	}
 	philo_free(info, philo);
 	return (0);
 }
