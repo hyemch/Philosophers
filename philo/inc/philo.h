@@ -22,9 +22,6 @@
 
 # define ERROR -1
 
-//포크상태를 나타내는 int배열 선언->포크상태 == 1일때 포크를 뮤텍스로 보호
-//각각의 필로소퍼가 end_flag를 가지고 있게 만들기.
-
 typedef struct s_info
 {
 	int				philo_num;
@@ -36,10 +33,9 @@ typedef struct s_info
 	long long		start_time;
 	int				*fork;
 	pthread_mutex_t	*forks;
-	pthread_mutex_t	print_mutex; //프린트
-	pthread_mutex_t	status_mutex; //now - lasttime 관련 관리
-	pthread_mutex_t	eat_mutex; //먹은 횟수 관리
-	pthread_mutex_t endflag_mutex;
+	pthread_mutex_t	print_mutex;
+	pthread_mutex_t	status_mutex;
+	pthread_mutex_t	endflag_mutex;
 }	t_info;
 
 typedef struct s_philo
@@ -54,22 +50,39 @@ typedef struct s_philo
 	t_info			*info;
 }	t_philo;
 
-//typedef struct s_philo
-//{
-//	int				id;
-//	int				eat_count;
-//	longlong		eat_time;
-//	int				fork_left;
-//	int				fork_right;
-//	pthread_t		thread;
-//	t_mutex			*mutex;
-//	t_info			*info;
-//}	t_philo;
-//
-//typedef struct s_mutex
-//{
-//	pthread_mutex_t	*forks;
-//	pthread_mutex_t	print_mutex;
-//}	t_mutex;
+/*utils.c*/
+size_t		ft_strlen(const char *str);
+int			ft_strncmp(const char *s1, const char *s2, size_t n);
+int			atol_utils(const char *str, long *result);
+long		ft_atol(const char *str);
+void		atol_intarr(char **arr);
+
+/*init.c*/
+int			print_error(char *str);
+int			init_philo_mutex(t_info *info);
+int			init_philo(t_info *info, t_philo **philo);
+int			init_arg(char **argv, t_info *info);
+
+/*philo.c*/
+void		philo_sleep(t_info *info, t_philo *philo);
+void		*philo_do(void *argv);
+int			create_philo(t_info *info, t_philo *philo);
+
+/*philo_eat.c*/
+void		eat_even(t_info *info, t_philo *philo);
+void		eat_odd(t_info *info, t_philo *philo);
+void		philo_solo(t_info *info, t_philo *philo);
+void		philo_eat(t_info *info, t_philo *philo);
+
+/*philo_utils.c*/
+long long	get_time(void);
+void		check_time(long long last_time, long long check_time);
+void		philo_printf(t_info *info, int id, char *str, char *color);
+
+/*philo_monitoring.c*/
+int			check_end(t_info *info);
+int			philo_end(t_info *info, t_philo *philo);
+void		philo_monitoring(t_info *info, t_philo *philo);
+void		philo_free(t_info *info, t_philo *philo);
 
 #endif
