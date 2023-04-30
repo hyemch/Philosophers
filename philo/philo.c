@@ -184,7 +184,23 @@ int	check_end(t_info *info)
 	return (0);
 }
 
-#include <string.h>
+int	ft_strncmp(const char *s1, const char *s2, size_t n)
+{
+	size_t				i;
+	unsigned char		*sptr1;
+	unsigned char		*sptr2;
+
+	sptr1 = (unsigned char *)s1;
+	sptr2 = (unsigned char *)s2;
+	i = 0;
+	while (i < n && (sptr1[i] != '\0' || sptr2[i] != '\0'))
+	{
+		if (sptr1[i] != sptr2[i])
+			return (sptr1[i] - sptr2[i]);
+		i++;
+	}
+	return (0);
+}
 
 void	philo_printf(t_info *info, int id, char *str, char *color)
 {
@@ -196,7 +212,7 @@ void	philo_printf(t_info *info, int id, char *str, char *color)
 		printf("%s%s\n", color, str);
 		printf("\033[0m");
 	}
-	if (strcmp(str, "died") == 0)
+	if (ft_strncmp(str, "died", 4) == 0)
 		return ;
 	pthread_mutex_unlock(&(info->print_mutex));
 }
@@ -345,17 +361,15 @@ int	check_philo(t_info *info, t_philo *philo)
 
 int	philo_death(t_info *info, t_philo *philo)
 {
-	long long	now;
 	int			i;
-	int	cnt;
+	int			cnt;
 
 	i = 0;
 	cnt = 0;
 	while (i < info->philo_num)
 	{
 		pthread_mutex_lock(&(info->status_mutex));
-		now = get_time();
-		if ((now - philo[i].last_time) > info->time_die)
+		if ((get_time() - philo[i].last_time) > info->time_die)
 		{
 			philo_printf(info, philo[i].id, "died", "\033[38;5;204m");
 			pthread_mutex_unlock(&(info->status_mutex));
@@ -363,9 +377,7 @@ int	philo_death(t_info *info, t_philo *philo)
 		}
 		if (info->must_eat != 0)
 		{
-			if (philo[i].eat_count == info->must_eat)
-				philo[i].eat_check = 1;
-			if (philo[i].eat_check)
+			if (philo[i].eat_count >= info->must_eat)
 				cnt++;
 		}
 		pthread_mutex_unlock(&(info->status_mutex));
@@ -421,7 +433,7 @@ void	*philo_do(void *argv)
 	}
 	if (!(philo->id % 2))
 		usleep(128);
-	while (!(check_end(info)))
+	while (1)
 	{
 		philo_eat(info, philo);
 		if (check_end(info))
