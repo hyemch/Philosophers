@@ -33,7 +33,7 @@ void	*philo_do(void *argv)
 		philo_solo(info, philo);
 		return (0);
 	}
-	if (!(philo->id % 2))
+	if (philo->id % 2)
 		usleep(128);
 	while (1)
 	{

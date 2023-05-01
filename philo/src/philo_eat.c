@@ -55,13 +55,13 @@ void	philo_solo(t_info *info, t_philo *philo)
 	pthread_mutex_lock(&(info->forks[0]));
 	philo_printf(info, philo->id, "has taken a fork", "\033[38;5;211m");
 	info->fork[0] = 1;
-	info->fork[0] = 1;
+	info->fork[0] = 0;
 	pthread_mutex_unlock(&(info->forks[0]));
 }
 
 void	philo_eat(t_info *info, t_philo *philo)
 {
-	if (philo->id % 2)
+	if (!(philo->id % 2))
 		eat_odd(info, philo);
 	else
 		eat_even(info, philo);
