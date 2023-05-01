@@ -15,7 +15,7 @@
 int	print_error(char *str)
 {
 	write(2, str, ft_strlen(str));
-	return (0);
+	return (1);
 }
 
 int	init_philo_mutex(t_info *info)
@@ -37,6 +37,8 @@ int	init_philo_mutex(t_info *info)
 	{
 		if (pthread_mutex_init(&(info->forks)[i], NULL) != 0)
 		{
+			while (i >= 0)
+				pthread_mutex_destroy(&(info->forks)[--i]);
 			free(info->forks);
 			return (0);
 		}
@@ -51,9 +53,12 @@ int	init_philo(t_info *info, t_philo **philo)
 
 	*philo = (t_philo *)malloc(sizeof(t_philo) * info->philo_num);
 	if (!*philo)
-		print_error("philo malloc error\n");
+		return (print_error("philo malloc error\n"));
 	if (!(init_philo_mutex(info)))
-		print_error("Error : mutex init error\n");
+	{
+		free(philo);
+		return (print_error("Error : mutex init error\n"));
+	}
 	i = 0;
 	while (i < info->philo_num)
 	{
@@ -62,7 +67,6 @@ int	init_philo(t_info *info, t_philo **philo)
 		(*philo)[i].fork_left = (i + info->philo_num - 1) % info->philo_num;
 		(*philo)[i].fork_right = i;
 		(*philo)[i].eat_count = 0;
-		(*philo)[i].eat_check = 0;
 		i++;
 	}
 	return (0);
@@ -81,12 +85,12 @@ int	init_arg(char **argv, t_info *info)
 		info->must_eat = (int)ft_atol(argv[5]);
 	if (info->philo_num <= 0 || info->time_die <= 0 || info->time_eat <= 0 \
 	|| info->time_sleep <= 0)
-		print_error("Error: argument error.\n");
+		return (print_error("Error: argument error.\n"));
 	if (argv[5] != NULL && info->must_eat <= 0)
-		print_error("Error: argument error.\n");
+		return (print_error("Error: argument error.\n"));
 	info->fork = (int *)malloc(sizeof(int) * info->philo_num);
 	if (!(info->fork))
-		print_error("Error: argument error.\n");
+		return (print_error("Error: argument error.\n"));
 	i = 0;
 	while (i < info->philo_num)
 	{

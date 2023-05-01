@@ -6,7 +6,7 @@
 /*   By: hyecheon <hyecheon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/30 17:11:55 by hyecheon          #+#    #+#             */
-/*   Updated: 2023/04/30 17:11:55 by hyecheon         ###   ########.fr       */
+/*   Updated: 2023/05/01 16:15:06 by hyecheon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,4 +50,17 @@ void	philo_printf(t_info *info, int id, char *str, char *color)
 	if (ft_strncmp(str, "died", 4) == 0)
 		return ;
 	pthread_mutex_unlock(&(info->print_mutex));
+}
+
+int	return_error(t_info *info, t_philo *philo)
+{
+	int	i;
+
+	i = 0;
+	pthread_mutex_lock(&(info->endflag_mutex));
+	info->end_flag = 1;
+	pthread_mutex_unlock(&(info->endflag_mutex));
+	while (i < info->philo_num)
+		pthread_join(philo[i++].thread, NULL);
+	return (ERROR);
 }

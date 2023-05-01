@@ -6,7 +6,7 @@
 /*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 20:51:59 by hyecheon          #+#    #+#             */
-/*   Updated: 2023/04/20 21:03:50 by hyecheon         ###   ########.fr       */
+/*   Updated: 2023/05/01 16:14:20 by hyecheon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,6 @@ typedef struct s_philo
 	long long		last_time;
 	int				fork_left;
 	int				fork_right;
-	int				eat_check;
 	pthread_t		thread;
 	t_info			*info;
 }	t_philo;
@@ -78,6 +77,7 @@ void		philo_eat(t_info *info, t_philo *philo);
 long long	get_time(void);
 void		check_time(long long last_time, long long check_time);
 void		philo_printf(t_info *info, int id, char *str, char *color);
+int			return_error(t_info *info, t_philo *philo);
 
 /*philo_monitoring.c*/
 int			check_end(t_info *info);
