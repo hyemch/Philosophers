@@ -6,7 +6,7 @@
 /*   By: hyecheon <hyecheon@student.42seoul.>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/28 20:47:42 by hyecheon          #+#    #+#             */
-/*   Updated: 2023/05/01 16:15:06 by hyecheon         ###   ########.fr       */
+/*   Updated: 2023/05/05 15:57:44 by hyecheon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ void	*philo_do(void *argv)
 		return (0);
 	}
 	if (philo->id % 2)
-		usleep(128);
+		usleep(1024);
 	while (1)
 	{
 		philo_eat(info, philo);
@@ -63,6 +63,7 @@ int	create_philo(t_info *info, t_philo *philo)
 			return_error(info, philo);
 			return (ERROR);
 		}
+//		usleep(128);
 		i++;
 	}
 	philo_monitoring(info, philo);

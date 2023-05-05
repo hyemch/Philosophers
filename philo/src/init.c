@@ -64,8 +64,9 @@ int	init_philo(t_info *info, t_philo **philo)
 	{
 		(*philo)[i].info = info;
 		(*philo)[i].id = i;
-		(*philo)[i].fork_left = (i + info->philo_num - 1) % info->philo_num;
-		(*philo)[i].fork_right = i;
+		(*philo)[i].fork_left = i;
+		(*philo)[i].fork_right = (i + 1) % info->philo_num;
+//		(*philo)[i].fork_left = (i + info->philo_num - 1) % info->philo_num;
 		(*philo)[i].eat_count = 0;
 		i++;
 	}

@@ -6,7 +6,7 @@
 /*   By: hyecheon <hyecheon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/30 17:01:33 by hyecheon          #+#    #+#             */
-/*   Updated: 2023/04/30 17:01:33 by hyecheon         ###   ########.fr       */
+/*   Updated: 2023/05/05 15:53:22 by hyecheon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ int	main(int argc, char **argv)
 	t_info		info;
 	t_philo		*philo;
 
-	atexit(leak);
+//	atexit(leak);
 	if (argc != 6 && argc != 5)
 	{
 		write(2, "Usage: ./philo [num] [die] [eat] [sleep] or ", 43);

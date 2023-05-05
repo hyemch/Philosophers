@@ -6,7 +6,7 @@
 /*   By: hyecheon <hyecheon@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/30 17:09:31 by hyecheon          #+#    #+#             */
-/*   Updated: 2023/04/30 17:09:31 by hyecheon         ###   ########.fr       */
+/*   Updated: 2023/05/05 16:01:18 by hyecheon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,8 +27,8 @@ void	eat_even(t_info *info, t_philo *philo)
 	check_time(philo->last_time, info->time_eat);
 	info->fork[philo->fork_left] = 0;
 	info->fork[philo->fork_right] = 0;
-	pthread_mutex_unlock(&(info->forks[philo->fork_right]));
 	pthread_mutex_unlock(&(info->forks[philo->fork_left]));
+	pthread_mutex_unlock(&(info->forks[philo->fork_right]));
 }
 
 void	eat_odd(t_info *info, t_philo *philo)
@@ -61,10 +61,11 @@ void	philo_solo(t_info *info, t_philo *philo)
 
 void	philo_eat(t_info *info, t_philo *philo)
 {
-	if (!(philo->id % 2))
-		eat_odd(info, philo);
-	else
-		eat_even(info, philo);
+//	printf("%d L:%d R:%d\n", philo->id + 1, philo->fork_left, philo->fork_right);
+//	if ((philo->id + 1) % 2)
+	eat_odd(info, philo);
+//	else
+//		eat_even(info, philo);
 	pthread_mutex_lock(&(info->status_mutex));
 	philo->eat_count++;
 	pthread_mutex_unlock(&(info->status_mutex));
