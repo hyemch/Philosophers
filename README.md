@@ -1,4 +1,4 @@
-# 42cursus-Philosophers
+# Philosophers
 philosophers with threads and mutexes
 
 ```
