@@ -34,7 +34,7 @@ int	main(int argc, char **argv)
 		return (1);
 	if (init_philo(&info, &philo) != 0)
 	{
-		free(&info);
+		free(philo);
 		return (1);
 	}
 	if (create_philo(&info, philo) != 0)
