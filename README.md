@@ -6,6 +6,7 @@ make
 ./philo [philosophers num] [die] [eat] [sleep]
 ./philo [philosopher num] [die] [eat] [sleep] [must eat]
 ```
+![image](https://github.com/user-attachments/assets/33f189e9-08ed-492f-a646-eaf234db4751)
 
 - 한 명 이상의 철학자가 원탁에 앉아있다. 
 테이블 중앙에는 큰 스파게티 그릇이 있다.
